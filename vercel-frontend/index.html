@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReaValue - AI House Price Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+
+        .nav-link:hover {
+            opacity: 0.7;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-full {
+            grid-column: 1 / -1;
+        }
+
+        .slider-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .prediction-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .predicted-price {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .confidence-interval {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 15px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .feature-importance-list {
+            list-style: none;
+        }
+
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+
+        .feature-name {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .feature-bar {
+            flex: 2;
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .feature-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+        }
+
+        .feature-value {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .comparison-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .comparison-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .comparison-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            border-left: 4px solid #3c3;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .predicted-price {
+                font-size: 36px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div>
+                <div class="logo">🏠 ReaValue</div>
+                <div class="tagline">AI-Powered Real Estate Intelligence</div>
+            </div>
+            <div class="nav-right">
+                <a href="#" class="nav-link">Home</a>
+                <a href="#" class="nav-link">Market</a>
+                <a href="#" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="main-grid">
+            <!-- Input Form Section -->
+            <div class="card">
+                <h2>Property Valuation</h2>
+
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+
+                <form id="predictionForm">
+                    <!-- Neighborhood & Year -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="neighborhood">Neighborhood</label>
+                            <select id="neighborhood" name="neighborhood" required>
+                                <option value="">Select...</option>
+                                <option value="Downtown">Downtown</option>
+                                <option value="Suburb">Suburb</option>
+                                <option value="Rural">Rural</option>
+                                <option value="Historic">Historic</option>
+                                <option value="Waterfront">Waterfront</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="yearBuilt">Year Built</label>
+                            <input type="number" id="yearBuilt" name="year_built" min="1900" max="2025" value="0"
+                                required>
+                        </div>
+                    </div>
+
+                    <!-- Square Footage & Bedrooms -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sqft">Square Footage</label>
+                            <input type="number" id="sqft" name="sqft" min="0" max="10000" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bedrooms">Bedrooms</label>
+                            <input type="number" id="bedrooms" name="bedrooms" min="0" max="10" value="0" required>
+                        </div>
+                    </div>
+
+                    <!-- Bathrooms & Quality -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bathrooms">Bathrooms</label>
+                            <input type="number" id="bathrooms" name="bathrooms" min="0" step="0.5" max="10" value="0"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="overallQuality">Overall Quality
+                                <span class="slider-value" id="qualityValue">0</span>
+                            </label>
+                            <input type="range" id="overallQuality" name="overall_quality" min="0" max="10" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Garage Area & Condition -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="garageArea">Garage Area (sq ft)</label>
+                            <input type="number" id="garageArea" name="garage_area" min="0" max="2000" value="0"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="condition">Condition</label>
+                            <select id="condition" name="condition" required>
+                                <option value="">Select...</option>
+                                <option value="Poor">Poor</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Good">Good</option>
+                                <option value="Very Good">Very Good</option>
+                                <option value="Excellent">Excellent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Amenities -->
+                    <div class="form-group form-row-full">
+                        <label>Amenities</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" name="has_pool" value="1">
+                                Has Pool
+                            </label>
+                            <label>
+                                <input type="checkbox" name="has_basement" value="1">
+                                Has Basement
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">
+                            🔮 PREDICT PRICE
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            Clear
+                        </button>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div class="loading" id="loadingSpinner">
+                        <div class="spinner"></div>
+                        <p>Analyzing property...</p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <!-- Prediction Display -->
+                <div class="prediction-display">
+                    <h2 style="margin-bottom: 20px;">Estimated Price</h2>
+                    <div class="predicted-price" id="predictedPrice">-</div>
+                    <div class="confidence-badge">
+                        Confidence: <span id="confidenceScore">-</span>
+                    </div>
+                    <div class="confidence-interval">
+                        Range: <span id="confidenceRange">-</span>
+                    </div>
+                </div>
+
+                <!-- Comparison Metrics -->
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <div class="comparison-label">Model RMSE</div>
+                        <div class="comparison-value">₹28,500</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="comparison-label">R² Score</div>
+                        <div class="comparison-value">0.87</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="comparison-label">Training Samples</div>
+                        <div class="comparison-value">1,000</div>
+                    </div>
+                </div>
+
+                <!-- Feature Importance -->
+                <div class="chart-container">
+                    <h3>📊 What Drives This Price?</h3>
+                    <ul class="feature-importance-list" id="featureImportance">
+                        <li class="feature-item">
+                            <span class="feature-name">Loading...</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button onclick="resetForm()" class="btn btn-secondary">
+                        ← New Prediction
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 ReaValue - AI-Powered Real Estate Valuation | Built with Python Flask + XGBoost + Machine
+            Learning</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // ⚠️ IMPORTANT: Update this URL after deploying backend to Render
+        const API_URL = 'https://realvalue-house-prediction.onrender.com/api/v1';
+
+        // Update quality slider value display
+        document.getElementById('overallQuality').addEventListener('input', (e) => {
+            document.getElementById('qualityValue').textContent = e.target.value;
+        });
+
+        // Form submission
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await predictPrice();
+        });
+
+        async function predictPrice() {
+            try {
+                // Collect form data
+                const formData = new FormData(document.getElementById('predictionForm'));
+                const data = {
+                    neighborhood: formData.get('neighborhood'),
+                    year_built: parseInt(formData.get('year_built')),
+                    sqft: parseInt(formData.get('sqft')),
+                    bedrooms: parseInt(formData.get('bedrooms')),
+                    bathrooms: parseFloat(formData.get('bathrooms')),
+                    overall_quality: parseInt(formData.get('overall_quality')),
+                    garage_area: parseInt(formData.get('garage_area')),
+                    has_pool: document.querySelector('input[name="has_pool"]').checked ? 1 : 0,
+                    has_basement: document.querySelector('input[name="has_basement"]').checked ? 1 : 0,
+                    condition: formData.get('condition')
+                };
+
+                // Validation
+                if (!data.neighborhood || !data.condition) {
+                    showError('Please select all required fields');
+                    return;
+                }
+
+                // Show loading
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('errorMessage').classList.remove('show');
+
+                // Make API call
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Prediction failed');
+                }
+
+                const result = await response.json();
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to get prediction');
+            } finally {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+
+        function displayResults(result) {
+            // Format currency
+            const formatter = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 0
+            });
+
+            // Update prediction display
+            document.getElementById('predictedPrice').textContent =
+                formatter.format(result.predicted_price);
+
+            document.getElementById('confidenceScore').textContent =
+                `${(result.confidence * 100).toFixed(0)}%`;
+
+            document.getElementById('confidenceRange').textContent =
+                `${formatter.format(result.confidence_interval.lower)} - ${formatter.format(result.confidence_interval.upper)}`;
+
+            // Update feature importance
+            const featureList = document.getElementById('featureImportance');
+            featureList.innerHTML = '';
+
+            const maxImportance = Math.max(...result.feature_importance.map(f => f.importance));
+
+            result.feature_importance.forEach(feature => {
+                const percentage = (feature.importance / maxImportance) * 100;
+                const html = `
+                    <li class="feature-item">
+                        <span class="feature-name">${feature.feature}</span>
+                        <div class="feature-bar">
+                            <div class="feature-bar-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <span class="feature-value">${formatter.format(feature.contribution)}</span>
+                    </li>
+                `;
+                featureList.innerHTML += html;
+            });
+
+            // Show results section
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+
+            showSuccess('Prediction successful! 🎉');
+        }
+
+        function resetForm() {
+            document.getElementById('predictionForm').reset();
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('qualityValue').textContent = '0';
+            document.getElementById('predictionForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = '✅ ' + message;
+            successEl.classList.add('show');
+            setTimeout(() => successEl.classList.remove('show'), 5000);
+        }
+
+        // Health check on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    console.log('✓ API is healthy');
+                }
+            } catch (error) {
+                console.warn('API health check failed - backend may be starting up');
+            }
+        });
+    </script>
+</body>
+
+</html>
